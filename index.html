@@ -1,0 +1,29 @@
+---
+layout: default
+title: 首页
+---
+<section class="hero page-shell">
+  <p class="eyebrow">HELLO, WORLD.</p>
+  <h1>在快速变化的世界里，<br>保持好奇，持续记录。</h1>
+  <p class="hero-copy">这里是 ggboooy 的个人博客，分享技术实践、产品观察，以及偶尔冒出来的生活灵感。</p>
+</section>
+
+<section class="posts-section page-shell">
+  <div class="section-heading">
+    <h2>最近文章</h2>
+    <span>{{ site.posts | size }} 篇记录</span>
+  </div>
+
+  <div class="post-list">
+    {% for post in site.posts %}
+      <article class="post-card">
+        <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
+        <div>
+          <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+          <p>{{ post.description | default: post.excerpt | strip_html | truncate: 110 }}</p>
+        </div>
+        <a class="post-arrow" href="{{ post.url | relative_url }}" aria-label="阅读《{{ post.title }}》">↗</a>
+      </article>
+    {% endfor %}
+  </div>
+</section>

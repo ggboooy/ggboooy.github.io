@@ -1,0 +1,20 @@
+title: "GG's Notes"
+description: "记录技术、产品与生活中的思考。"
+url: "https://ggboooy.github.io"
+baseurl: ""
+lang: zh-CN
+timezone: Asia/Shanghai
+author:
+  name: ggboooy
+  github: ggboooy
+
+permalink: /posts/:title/
+markdown: kramdown
+kramdown:
+  input: GFM
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor

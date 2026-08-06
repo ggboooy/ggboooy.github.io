@@ -17,6 +17,21 @@ MLA缓存的是低秩c_{kv,t}，这时候没有自带RoPE，如果每一次都�
 MLA的处理是把KV的RoPE拆开，单独拆成一段小维度RoPE单独缓存。（low_rank维度是512，RoPE维度是64），然后给每一个head都concat上去。
 
 2.MLA的cp：all-gather（lss transformer）、ulyssess
+https://zhuanlan.zhihu.com/p/1995776941110878482
+<img width="1598" height="710" alt="image" src="https://github.com/user-attachments/assets/de8911b6-cf28-4d81-ba72-15900709f756" />
+DSA完整的图片
+<img width="945" height="523" alt="image" src="https://github.com/user-attachments/assets/4d6700ff-b737-4ea2-b481-90c2b65dbad5" />
+DSA场景下 indexer是性能优化关键。
+主要是ulyssess和lss tranformer
+<img width="1658" height="448" alt="image" src="https://github.com/user-attachments/assets/4d3736e2-8b93-4b4b-9f8e-947b5617adb8" />
+<img width="1440" height="679" alt="image" src="https://github.com/user-attachments/assets/431f3b42-7ad5-4259-ad57-00110f3c2429" />
 
 
-3.矩阵吸收的计算量分析
+
+
+**三、如何解决超长序列下的显存量？？？**
+解决方式：1. 将allreduce替换成reducescatter+all gather，并采用分布式排序。
+2 降低MLA层的冗余权重
+<img width="1440" height="681" alt="image" src="https://github.com/user-attachments/assets/aa137e82-9eb5-422f-8f8b-c391f635c0b7" />
+第一种就是index得到【s_q,index / cp / TP,s_k】两个n^2的时候不要all-reduce，而是先reduce-scatter再topk再all-gather就可以减少峰值显存了。
+第二种就是q_up_proj、o_proj两个矩阵每个gpu都存储不同layer完整的矩阵

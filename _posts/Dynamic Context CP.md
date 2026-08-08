@@ -60,7 +60,7 @@ K1 V1
 K3 V3
 K5 V5
 K7 V7
-
+**这里的token是interleave的插入。**
 vLLM 已合入的 DCP 正是这种 interleaved KV layout：token i 存在 i % dcp_world_size 对应的 rank。
 
 现在生成 token 8。
@@ -94,7 +94,7 @@ Q8 × [K1,K3,K5,K7]
 这里的all-gather cp指的是kv all-gather，q不all-gather（或者x输入 all-gather一次，重复计算一下，q部分丢弃）
 这里可以用zig-zag均衡计算。
 最后得到各个完整token的o。主要，和原版lss transformer不一样，这里的cp 不一样可能要all-gather一下。
-
+**这里的token是zigzag插入的**
 
 ## 4.Dynamic CP 与普通 Static CP 最大区别
 

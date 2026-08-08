@@ -90,3 +90,55 @@ Q8 × [K1,K3,K5,K7]
 这里的all-gather cp指的是kv all-gather，q不all-gather（或者x输入 all-gather一次，重复计算一下，q部分丢弃）
 这里可以用zig-zag均衡计算。
 最后得到各个完整token的o。主要，和原版lss transformer不一样，这里的cp 不一样可能要all-gather一下。
+
+
+## 4.Dynamic CP 与普通 Static CP 最大区别
+
+普通：
+
+--cp-size 4
+
+所有 request：
+
+4K   → CP4
+8K   → CP4
+512K → CP4
+1M   → CP4
+
+问题是短 request：
+
+Attention kernel = 10 us
+通信 = 20 us
+
+CP 反而更慢
+
+Dynamic：
+
+4K     → CP1
+32K    → CP1/2
+128K   → CP2
+512K   → CP4
+1M     → CP8
+
+所以本质是：
+
+CP(r)=f(context_len,new_tokens,batch,KV occupancy,network,GPU load)
+
+现实里不能只看 sequence length。
+
+更好的 cost model 应该看：
+
+Prefill:
+new_tokens
+total_context
+KV/Q head ratio
+
+Decode:
+KV length
+batch size
+
+Global:
+各 DP attention load
+各 GPU KV occupancy
+EP batch balance
+通信拓扑

@@ -6,6 +6,7 @@ description: ""
 https://chatgpt.com/share/6a76c026-4fc4-83ec-99a1-84250581c526
 
 主要是为了解决：大EP前提下，attn dp负载不均导致的空等，然后一起进入moe阶段。
+varlen情况下的负载均衡策略解决。
 https://github.com/vllm-project/vllm/issues/29295
 ## 1. 先把 Dynamic CP 拆成两层
 它实际上有两层：
@@ -40,6 +41,7 @@ RFC 提出提前建立多个通信 group，根据请求长度选择 CP degree，
 
 ## 2. Decode 阶段是DCP
 https://zhuanlan.zhihu.com/p/2020086868914499979
+<img width="2094" height="738" alt="image" src="https://github.com/user-attachments/assets/ca38b027-25d2-4a77-b08a-9af2c90506e1" />
 假设：
 
 context = 8 tokens
@@ -84,7 +86,9 @@ Q8 × [K1,K3,K5,K7]
 (O0,LSE0) + (O1,LSE1)
           ↓
           O8
+
 注意，这里的merge是online softmax的merge。
+不仅如此，dcp其实可以在GQA/MLA阶段省显存（部分head头重复存储，从token维度就少存储了）但是现阶段vllm/sglang的dcp强制以来于TP
 
 ## 3. prefill阶段是all-gather cp
 这里的all-gather cp指的是kv all-gather，q不all-gather（或者x输入 all-gather一次，重复计算一下，q部分丢弃）

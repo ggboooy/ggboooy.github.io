@@ -1,0 +1,92 @@
+---
+layout: post
+title: "Dynamic Context CP"
+description: ""
+---
+https://chatgpt.com/share/6a76c026-4fc4-83ec-99a1-84250581c526
+
+主要是为了解决：大EP前提下，attn dp负载不均导致的空等，然后一起进入moe阶段。
+https://github.com/vllm-project/vllm/issues/29295
+## 1. 先把 Dynamic CP 拆成两层
+它实际上有两层：
+Dynamic CP
+│
+├── 控制面：这个 request 用 CP=1 / 2 / 4 / 8？
+│
+└── 数据面：选定 CP=N 后，Attention 怎么算？
+      ├── Decode：sharded KV + partial attention merge
+      └── Prefill：
+           ├── KV AllGather + local Q
+           └── Ring pass-KV / pass-Q
+
+vLLM 的 Dynamic CP RFC #29295 的核心创新主要在第一层，对于不同的请求用不同的CP：
+一个长请求可以临时占用多个原本独立的 DP-Attention replica。
+例如原来：
+DP0: request A
+DP1: request B
+DP2: request C
+DP3: request D
+现在可能变成：
+短请求 A：CP=1 → DP0
+长请求 B：CP=2
+            ├── DP1
+            └── DP2
+超长请求 C：CP=4
+            ├── DP0
+            ├── DP1
+            ├── DP2
+            └── DP3
+RFC 提出提前建立多个通信 group，根据请求长度选择 CP degree，避免运行时反复创建 NCCL group；scheduler 上再增加 Domain 和 CrossDPScheduler，统一管理多个 DP replica。
+
+## 2. Decode 阶段是DCP
+https://zhuanlan.zhihu.com/p/2020086868914499979
+假设：
+
+context = 8 tokens
+CP = 2
+
+KV cache 可以分成：
+
+GPU0:
+K0 V0
+K2 V2
+K4 V4
+K6 V6
+
+GPU1:
+K1 V1
+K3 V3
+K5 V5
+K7 V7
+
+vLLM 已合入的 DCP 正是这种 interleaved KV layout：token i 存在 i % dcp_world_size 对应的 rank。
+
+现在生成 token 8。
+
+只有一个：
+
+Q8
+
+两个 rank 分别做：
+
+GPU0:
+Q8 × [K0,K2,K4,K6]
+        ↓
+(O0, LSE0)
+
+GPU1:
+Q8 × [K1,K3,K5,K7]
+        ↓
+(O1, LSE1)
+
+最后精确 merge：
+
+(O0,LSE0) + (O1,LSE1)
+          ↓
+          O8
+注意，这里的merge是online softmax的merge。
+
+## 3. prefill阶段是all-gather cp
+这里的all-gather cp指的是kv all-gather，q不all-gather（或者x输入 all-gather一次，重复计算一下，q部分丢弃）
+这里可以用zig-zag均衡计算。
+最后得到各个完整token的o。主要，和原版lss transformer不一样，这里的cp 不一样可能要all-gather一下。

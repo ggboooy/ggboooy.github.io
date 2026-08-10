@@ -5,6 +5,7 @@ description: ""
 ---
 
 https://arxiv.org/abs/2501.01005
+注意，下面讨论的都是decode阶段。
 
 创新点：
 1.kv cache统一成block sparse attention

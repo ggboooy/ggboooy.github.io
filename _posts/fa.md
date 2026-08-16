@@ -61,8 +61,21 @@ https://chatgpt.com/share/6a7f21ae-5eb8-83ec-bd4d-bdc9dc334e9b
 
 主要是三个优化：
 - wg specialzation：生产者 消费者（搬运q，k_j,v_j+1）
-- wg之间的overlap，wg内部的overlap(wg之间：想办法让mma和softmax同时利用：两个mma指令结束，softmax之前signal一下。wg内部：想办法减少串行等待：q@k_j,k^j+1@v_j+1)
+- wg之间的overlap，wg内部的overlap(wg之间：想办法让mma和softmax同时利用：两个mma异步指令开始后，softmax之前signal一下。
+- wg内部：想办法减少串行等待：q@k_j,k^j+1@v_j+1)
+```
+                iteration j         iteration j+1
+
+Tensor Core:    Q K_{j}^T      ||     P_{j+1}V_{j+1}
+                                      ↓wait_wgmma<1> (等待只有一个mma)
+CUDA/SFU:                          softmax_{j+1}
+```
+
+这里其实可以有更多的stage overlap（比如存着两个PV tile）
+
 - attn量化
+Hadamard降低离散值
+v的tranpose
 
 
 

@@ -48,9 +48,12 @@ https://zhuanlan.zhihu.com/p/577412348
 gmem的读取单位是事务，每次都连续读32byte连续内存单位（也称为sector）。
 gmem主要讲究合并访存，希望读取的东西都是内存连续的。也有float2 float4让一个线程读连续的float避免内存事务浪费。
 
-smem的读取单位是bank，每次都读到某一个bank上面也有swizzle来优化smem。
+smem的读取单位是bank，每次都读到某一个bank上面。也有padding或者swizzle来优化smem。
 
-L2 cache：GROUP_SIZE_M？
+L2 cache：GROUP_SIZE_M=4
+假如说【M，K】@【k，N】
+这时候就是固定K=0，m0,m1,m2,m3四个的block是连续的。
+gpu有倾向在相邻时间片上面调度这些block到sm上面，所以这里L2 cache对expert权重更友好。（因为M一般比较小,M*K<K*N）
 ```
 这6个参数没有全局最优值，最优组合依赖于：
 - GPU型号（SM数、L2大小、TensorCore shape），

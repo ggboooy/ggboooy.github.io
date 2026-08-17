@@ -54,6 +54,9 @@ L2 cache：GROUP_SIZE_M=4
 假如说【M，K】@【k，N】
 这时候就是固定K=0，m0,m1,m2,m3四个的block是连续的。
 gpu有倾向在相邻时间片上面调度这些block到sm上面，所以这里L2 cache对expert权重更友好。（因为M一般比较小,M*K<K*N）
+
+<img width="1440" height="788" alt="image" src="https://github.com/user-attachments/assets/e6e69dab-d7d1-4d18-9114-511e80732724" />
+这里还有一个细节，按照block的维度去读，而不是一行的维度去读，这样load的元素更少但是计算出的结果一样多
 ```
 这6个参数没有全局最优值，最优组合依赖于：
 - GPU型号（SM数、L2大小、TensorCore shape），

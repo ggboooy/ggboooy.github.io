@@ -89,6 +89,8 @@ def int8_gemm_tiled_kernel(
 这里有一段triton量化代码，细节就是：先求出block负责的offsets。不管怎么样，都要先求出block的对应区域的ptr（这里要利用triton的广播机制），
 最后在load、store的时候也要广播和mask一下。求block ptr用的是+的广播，load store用的是&的广播。
 
+<img width="756" height="741" alt="image" src="https://github.com/user-attachments/assets/7ff3892f-dfee-4675-a882-d6eec207f7c8" />
 
+这里有一段量化然后累加的代码，注意第一个TMA copy其实和TMA没关系，cast用了cuda core 搬运用了SM，第二个才是TMA。
 
 # SmothQuant：激活值和权重同时量化，将激活值量化难度迁移到权重上

@@ -93,4 +93,6 @@ def int8_gemm_tiled_kernel(
 
 这里有一段量化然后累加的代码，注意第一个TMA copy其实和TMA没关系，cast用了cuda core 搬运用了SM，第二个才是TMA。
 
+注意，只要输出结果不是FP32都要cast一下，并且要从reg->(cast)smem->gmem
+
 # SmothQuant：激活值和权重同时量化，将激活值量化难度迁移到权重上

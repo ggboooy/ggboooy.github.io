@@ -24,5 +24,7 @@ cudagraph的地址永远都是0x100000静态，申请很大的地址，然后内
 
 0.CTA是什么，就是kernel里面的block吗？怎么让一个block动态申请这么多任务的？
 1.什么是persistent kernel，为什么要用persistent kernel：（persistent kernel就是持久化kernle，正常kernel执行完一个任务就消失了，
-这里的kernel就是生产者消费者，因为cudagraph的griddim固定有这么多block 所以是persistent kernel。graph里面的blockdim、workspace pointer也是固定的）
-2.这里动态切分kv长度其实是不是就是dynamic cp？差不多。一个是单gpu上面切， 一个是切了cp分配到不同机器上面。
+这里的kernel就是生产者消费者，因为cudagraph的griddim固定有这么多block 所以是persistent kernel，主要是指正常的kernel只干一个block的数据，persistent kernel要干很多的其他req block。graph里面的blockdim、workspace pointer也是固定的）
+2.这里动态切分kv长度其实是不是就是dynamic cp？差不多。一个是不同block上面切， 一个是切了cp分配到不同机器上面。
+
+看起来最大的的创建就是每一次运行forward的时候cpu先plan一下：给block/CTA确定dyanmic cp+负载均衡，以及调节一下kernel shape，一个persistent运行不同的req的tile，后面所有的block都复用这个配置。

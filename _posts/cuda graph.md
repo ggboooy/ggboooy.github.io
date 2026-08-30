@@ -22,6 +22,8 @@ gpu上面的指令大部分都是可以的，tensor.to("gpu")必须是pinned_mem
 
 host的node也可以添加，但是stream不会主动捕获 要手动添加节点，并且host node不能执行cuda api否则会报错。
 
+所以device可以和host同步，host不能和device同步。
+
 如果想要捕获多个stream并行kernel，这时候一般是不同stream之间通过event同步可以感染创建graph。
 
 还有一些细节：cuda graph每次执行都会有自己的一个pool。。

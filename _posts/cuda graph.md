@@ -8,9 +8,13 @@ https://zhuanlan.zhihu.com/p/700224642
 
 cuda graph是什么？
 
-cuda graph就是一张图，里面记录有很多节点。
+cuda graph就是一张图，里面记录有很多节点。kernel node、memcpy、memalloc、memfree、hostnode。
 
 创建cuda graph的方式有两种：第一种自己手动添加节点组织图，第二种捕抓stream上面的操作来添加节点组成图。
+
+<img width="1440" height="1214" alt="image" src="https://github.com/user-attachments/assets/dc9ee618-fb64-41bc-b850-fba3fc0207a2" />
+graph的kernel node只会记录操作的地址，所以写的torch啥的graph地址不能变化。
+
 
 如果是捕获stream上面的操作，其实不会真的执行，只会添加node。
 

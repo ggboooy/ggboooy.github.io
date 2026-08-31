@@ -27,4 +27,4 @@ cudagraph的地址永远都是0x100000静态，申请很大的地址，然后内
 这里的kernel就是生产者消费者，因为cudagraph的griddim固定有这么多block 所以是persistent kernel，主要是指正常的kernel只干一个block的数据，persistent kernel要干很多的其他req block。graph里面的blockdim、workspace pointer也是固定的）
 2.这里动态切分kv长度其实是不是就是dynamic cp？差不多。一个是不同block上面切， 一个是切了cp分配到不同机器上面。
 
-看起来最大的的创建就是每一次运行forward的时候cpu先plan一下：给block/CTA确定dyanmic cp+负载均衡，以及调节一下kernel shape，一个persistent运行不同的req的tile，后面所有的block都复用这个配置。
+看起来最大的的创建就是每一次运行forward的时候cpu先plan一下：给block/CTA确定dyanmic cp+负载均衡，以及调节一下kernel shape(注意 这里的kernel shape是不能变化的)，一个persistent运行不同的req的tile，后面所有的block都复用这个配置。

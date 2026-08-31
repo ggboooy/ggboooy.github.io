@@ -93,6 +93,7 @@ def int8_gemm_tiled_kernel(
 m=64,n=8,16,24...256,k=16/32(k必须是16字节，具体看精度)
 并且a可以是gmem，b必须是smem/rmem，c必须是rmem。a@b+c得到c的精度是大于bf16，但是小于fp32的。
 
+**优化小shape的gemm**：1.swap ab 2.group-M 3.split-K 4.fuse（dispatcher permute offset） 5.wave、group gemm
 
 <img width="756" height="741" alt="image" src="https://github.com/user-attachments/assets/7ff3892f-dfee-4675-a882-d6eec207f7c8" />
 

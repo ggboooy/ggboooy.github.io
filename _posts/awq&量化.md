@@ -91,6 +91,8 @@ def int8_gemm_tiled_kernel(
 
 注意，wgmma的指令有形状要求：
 m=64,n=8,16,24...256,k=16/32(k必须是16字节，具体看精度)
+并且a可以是gmem，b必须是smem/rmem，c必须是rmem。a@b+c得到c的精度是大于bf16，但是小于fp32的。
+
 
 <img width="756" height="741" alt="image" src="https://github.com/user-attachments/assets/7ff3892f-dfee-4675-a882-d6eec207f7c8" />
 

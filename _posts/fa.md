@@ -10,8 +10,32 @@ https://chatgpt.com/share/6a7d6b03-5bb4-83ec-93b4-6134717e5dc1
 主要讲了Attn不仅仅是计算瓶颈，而且也是IO瓶颈。因为Q @ K ^ T的这里有n^2 HBM读写。
 主要是onlinesoftmax让在smem上，优化了IO瓶颈，少访问HBM。
 
+【bs，head，num_split】的kernel，每一个CTA的逻辑是这样的
+```
+for kv in block_N:
+  for q in block_M:
+      算S[m,n]
+      更新softmax
+      更新O[m]
+这里一个CTA负责一个完整的【bs，head】，但是第二个for循环要lse merge，reduction，不过是CTA内部。
+```
+<img width="1748" height="778" alt="image" src="https://github.com/user-attachments/assets/629600ee-15d3-4493-8c33-a5f61fb6d158" />
+
+BLOCK内部的warp，是同一个KV 不同的Q，所以warp同步__syncthreads之后就可以可以lse merge同一个O了。
+
 # FA2
 [fa2:]https://arxiv.org/abs/2205.14135
+
+【bs,head,q_seq】
+```
+for q in block_M:
+  for kv in block_N:
+    算S[m,n]
+    
+```
+<img width="1392" height="844" alt="image" src="https://github.com/user-attachments/assets/eb2ee775-9626-45f3-91a7-25dd4482304b" />
+fa2的block切分是直接切Q，并且warp之间也不用reductin同步了。
+
 IO降下来之后，新的瓶颈在于SM利用率、CTA/warp任务、shared memory通信
 更多SM同时干活，让warp少通信。
 

@@ -48,7 +48,7 @@ https://zhuanlan.zhihu.com/p/577412348
 gmem的读取单位是事务，每次都连续读32byte连续内存单位（也称为sector）。
 gmem主要讲究合并访存，希望读取的东西都是内存连续的。也有float2 float4让一个线程读连续的float避免内存事务浪费。
 
-smem的读取单位是bank，每次都读到某一个bank上面。也有padding或者swizzle来优化smem。
+smem的读取单位是bank，每次都读到某一个bank上面，一个bank是4字节。也有padding或者swizzle来优化smem。
 
 L2 cache：GROUP_SIZE_M=4
 假如说【M，K】@【k，N】

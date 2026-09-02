@@ -34,7 +34,7 @@ for q in block_M:
     
 ```
 <img width="1392" height="844" alt="image" src="https://github.com/user-attachments/assets/eb2ee775-9626-45f3-91a7-25dd4482304b" />
-fa2的block切分是直接切Q，并且warp之间也不用reductin同步了。
+fa2的block切分是直接切Q，warp也是Q并行，并且CTAwarp之间也不用reductin同步了。
 
 IO降下来之后，新的瓶颈在于SM利用率、CTA/warp任务、shared memory通信
 更多SM同时干活，让warp少通信。

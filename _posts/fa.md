@@ -64,10 +64,11 @@ parallel dimensions=batch×heads
 FA2 变成：
 
 batch×heads×Q_blocks
-```	​
+
 就是说一个CTA负责一个Q（其实也就是token），这样就不需要同步了。（类似于ulyssess和lss transform的区别）
 
 对于一个CTA内部有很多warp，相比于fa1，fa2也是不同warp负责不同的q保持独立。
+```
 
 # FA3:
 https://arxiv.org/abs/2407.08608
@@ -93,6 +94,7 @@ https://chatgpt.com/share/6a7f21ae-5eb8-83ec-bd4d-bdc9dc334e9b
 Tensor Core:    Q K_{j}^T      ||     P_{j+1}V_{j+1}
                                       ↓wait_wgmma<1> (等待只有一个mma)
 CUDA/SFU:                          softmax_{j+1}
+
 ```
 
 这里其实可以有更多的stage overlap（比如存着两个PV tile）

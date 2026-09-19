@@ -86,7 +86,7 @@ https://chatgpt.com/share/6a7f21ae-5eb8-83ec-bd4d-bdc9dc334e9b
 
 主要是三个优化：
 - wg specialzation：生产者 消费者（搬运q，k_j,v_j+1）
-- wg之间的overlap，wg内部的overlap(wg之间：想办法让mma和softmax同时利用：两个mma异步指令开始后，softmax之前signal一下。
+- wg之间的overlap，wg内部的overlap(wg之间：想办法让mma和softmax同时利用：两个mma异步指令开始后，wait_wgmma之后softmax之前signal一下 让另一个warp开始tensorcore利用。
 - wg内部：想办法减少串行等待：q@k_j,k^j+1@v_j+1)
 ```
                 iteration j         iteration j+1

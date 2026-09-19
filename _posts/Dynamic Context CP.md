@@ -146,3 +146,10 @@ Global:
 各 GPU KV occupancy
 EP batch balance
 通信拓扑
+
+
+https://meeting.tencent.com/v2/cloud-record/share?id=9661034d-556e-4f92-8d4f-9032701b9272&from=3&is-single=false&record_type=2&linkId=transfer
+
+CP：all-gather cp（gather kv，无法避免 但是可以gather-x+zigzag也就是llama cp），然后是ring transform 避免了all-gather但是有online softmax+THD不高效。ulyssess两次all-to-all
+DSA：用lss。
+SlimePack：pack不能解决计算不均衡；flops相同可能时间也不一样。（gemm 和attn）解决方案：dp之间分相同flops。dp内部计算出attn的flops计算时间 moe的flops计算时间（这里用模拟器），穷举micropacks的数量不同长划分样本最后拼接。

@@ -9,6 +9,14 @@ https://chatgpt.com/share/6a7c204e-b590-83ec-9143-8c25f307a643：动态量化比
 
 logits用fp32、attn_score、router用fp16，其他的是fp8.
 
+# 量化粒度
+per-token,per-channel
+
+per-block
+
+per-tensor
+
+
 # RTN量化
 就是 q = round(x / delta), x' = delta * q
 

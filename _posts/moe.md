@@ -6,6 +6,13 @@ description: ""
 
 https://arxiv.org/abs/2603.07685
 
+# 确定性算子
+- moe expert的累加顺序
+- 残差相加是先bf16还是先累加
+- deep_gemm，batch_invarient
+- DSA index的replay
+- router replay
+
 还没看完这篇文章，先讲讲自己注意的点。
 
 小M优化：1.swap ab 2.group-M 3.split-K 4.fuse（dispatcher（permute、offset）） grouped gemm
@@ -30,6 +37,8 @@ dispatch包含了permute，permute是目标expert的传输布局：
 
 ```
 c指的是这个expert的数
+
+norm模式这里其实必须要所有gpu等待传送要接受的数量，然后cpu分配显存再dispatch permute。
 
 ## 通信
 norm需要相同索引的gpu中转 然后再发送，并且收到的token数量是动态的，需要cpu统计数量

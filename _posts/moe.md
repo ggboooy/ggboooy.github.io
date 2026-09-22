@@ -40,7 +40,27 @@ c指的是这个expert的数
 
 norm模式这里其实必须要所有gpu等待传送要接受的数量，然后cpu分配显存再dispatch permute。
 
+最新的norm模式技术其实有 paged-stashing。
 ## 通信
 norm需要相同索引的gpu中转 然后再发送，并且收到的token数量是动态的，需要cpu统计数量
 
 low-latency不需要统计数量，直接收所有token
+
+## 显存墙
+- recompute
+- cp/sp
+- offload、zero3
+
+## 通信墙
+- deepep
+- pp流水线
+
+## 计算墙
+- grouped gemm(多流stream启动kernrl、持久化kernerl、FC1 swiglu FC2算子融合)
+- cudagraph（device launch、paged-stashing、echo）。注意这里的device launch可以让device选择最优的launch配置，不需要cpu的eager模式？？
+- cudagraph开销主要是：python->框架->kernerl launch
+- 算子融合（process&permute&unpermute、router&aux）
+
+## 打破三堵墙共同的办法：量化
+- padding
+- 选择性量化

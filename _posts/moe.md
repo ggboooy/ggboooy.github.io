@@ -41,21 +41,29 @@ c指的是这个expert的数
 norm模式这里其实必须要所有gpu等待传送要接受的数量，然后cpu分配显存再dispatch permute。
 
 最新的norm模式技术其实有 paged-stashing。
-## 通信
+
+# pd分离怎么回答？
+- prefill和deocde性质不一样，prefill是computed bound 通信量大，decode是memory bound，通信量小。从算数强度可以看出来
+- 两者采取的优化手段不一样：prefill可以开一些cp和pp缓解计算压力，decode一般是大ep+投机解码，这样memory bound压力小并且转化为compute bound，算数强度大了。
+- prefill一般deepep采取norm模式，内存排布、通信方式、grouped_gemm怎么算的、计算通信重叠、如果训练可以paged-stashed+cuda graph。
+- decode一般用low-latency模式，内存排布、通信方式、grouped_gemm怎么算的、
+
+
+# 通信
 norm需要相同索引的gpu中转 然后再发送，并且收到的token数量是动态的，需要cpu统计数量
 
 low-latency不需要统计数量，直接收所有token
 
-## 显存墙
+# 显存墙
 - recompute
 - cp/sp
 - offload、zero3
 
-## 通信墙
+# 通信墙
 - deepep
 - pp流水线
 
-## 计算墙
+# 计算墙
 - grouped gemm(多流stream启动kernrl、持久化kernerl、FC1 swiglu FC2算子融合)
 - cudagraph（device launch、paged-stashing、echo）。注意这里的device launch可以让device选择最优的launch配置，不需要cpu的eager模式？？
 - cudagraph开销主要是：python->框架->kernerl launch

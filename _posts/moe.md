@@ -25,6 +25,8 @@ dispatch包含了permute，permute是目标expert的传输布局：
 
    张量        Normal 常用的 contiguous layout    Low-latency 常用的 masked layout
   ━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   接受        [所有 expert 输入段的总行数, K]    [E, RANKS,EXPERTS, K]
+  ──────────  ─────────────────────────────────  ──────────────────────────────────
    输入        [所有 expert 输入段的总行数, K]    [E, C, K]
   ──────────  ─────────────────────────────────  ──────────────────────────────────
    权重        [E, N, K]                          [E, N, K]
@@ -36,7 +38,8 @@ dispatch包含了permute，permute是目标expert的传输布局：
    含义        各 expert 的输入段拼在一起         每个 expert 占一个固定容量区域
 
 ```
-c指的是这个expert的数
+准确来说输入
+c指的是这个expert 的有效token数
 
 norm模式这里其实必须要所有gpu等待传送要接受的数量，然后cpu分配显存再dispatch permute。
 
@@ -45,8 +48,9 @@ norm模式这里其实必须要所有gpu等待传送要接受的数量，然后c
 # pd分离怎么回答？
 - prefill和deocde性质不一样，prefill是computed bound 通信量大，decode是memory bound，通信量小。从算数强度可以看出来
 - 两者采取的优化手段不一样：prefill可以开一些cp和pp缓解计算压力，decode一般是大ep+投机解码，这样memory bound压力小并且转化为compute bound，算数强度大了。
-- prefill一般deepep采取norm模式，内存排布、通信方式、grouped_gemm怎么算的、计算通信重叠、如果训练可以paged-stashed+cuda graph。
+- prefill一般deepep采取norm模式，内存排布、通信方式、grouped_gemm怎么算的、如果训练可以paged-stashed+cuda graph。
 - decode一般用low-latency模式，内存排布、通信方式、grouped_gemm怎么算的、
+- 注意，两者的two-batch-overlap也不一样，这里decode通信用的sm少所以这样搞。
 
 
 # 通信
@@ -61,7 +65,7 @@ low-latency不需要统计数量，直接收所有token
 
 # 通信墙
 - deepep
-- pp流水线
+- pp流水线：这里可以提到朱然的two-batch-overlap算法。
 
 # 计算墙
 - grouped gemm(多流stream启动kernrl、持久化kernerl、FC1 swiglu FC2算子融合)

@@ -8,6 +8,22 @@ https://chatgpt.com/share/6a76c026-4fc4-83ec-99a1-84250581c526
 主要是为了解决：大EP前提下，attn dp负载不均导致的空等，然后一起进入moe阶段。
 varlen情况下的负载均衡策略解决。
 https://github.com/vllm-project/vllm/issues/29295
+
+# CP
+https://meeting.tencent.com/v2/cloud-record/share?id=9661034d-556e-4f92-8d4f-9032701b9272&from=3&is-single=false&record_type=2&linkId=transfer
+
+CP有哪些呢？
+- all-gather cp（gather kv，无法避免且计算不均匀 但是可以gather-x+zigzag也就是llama cp）。
+- ring attention。避免了all-gather但是有online softmax+THD不高效。
+- ulyssess两次all-to-all交换head维度。比较通用，但是计算通信无法掩盖，字节的做法的WQ WK WV的计算掩盖通信
+- chunkwise的linear attention CP。ulyssess的优化方案/
+
+DSA：用lss。flash sparse attention对稀疏不高效，ulyssess的话在indexer那里要重复计算或者通信过大。
+
+SlimePack：pack不能解决计算不均衡；flops相同可能时间也不一样。（gemm 和attn）解决方案：dp之间分相同flops。dp内部计算出attn的flops计算时间 moe的flops计算时间（这里用模拟器），穷举micropacks的数量不同长划分样本最后拼接。
+
+
+
 ## 1. 先把 Dynamic CP 拆成两层
 它实际上有两层：
 Dynamic CP
@@ -148,8 +164,4 @@ EP batch balance
 通信拓扑
 
 
-https://meeting.tencent.com/v2/cloud-record/share?id=9661034d-556e-4f92-8d4f-9032701b9272&from=3&is-single=false&record_type=2&linkId=transfer
 
-CP：all-gather cp（gather kv，无法避免 但是可以gather-x+zigzag也就是llama cp），然后是ring transform 避免了all-gather但是有online softmax+THD不高效。ulyssess两次all-to-all
-DSA：用lss。
-SlimePack：pack不能解决计算不均衡；flops相同可能时间也不一样。（gemm 和attn）解决方案：dp之间分相同flops。dp内部计算出attn的flops计算时间 moe的flops计算时间（这里用模拟器），穷举micropacks的数量不同长划分样本最后拼接。

@@ -16,7 +16,7 @@ CP有哪些呢？
 - all-gather cp（gather kv，无法避免且计算不均匀 但是可以gather-x+zigzag也就是llama cp）。
 - ring attention。避免了all-gather但是有online softmax+THD不高效。
 - ulyssess两次all-to-all交换head维度。比较通用，但是计算通信无法掩盖，字节的做法的WQ WK WV的计算掩盖通信
-- chunkwise的linear attention CP。ulyssess的优化方案/
+- chunkwise的linear attention CP。https://chatgpt.com/share/6ac4d8d4-64f8-83ec-9c23-61d911273f88
 
 DSA：用lss。flash sparse attention对稀疏不高效，ulyssess的话在indexer那里要重复计算或者通信过大。
 

@@ -7,6 +7,9 @@ https://zhuanlan.zhihu.com/p/685838198
 
 https://zhuanlan.zhihu.com/p/681363624
 
+朱然：
+https://mp.weixin.qq.com/s/vCy6ga5EA2dzvFoL8p6QjA
+
 
 ## GPipe
 <img width="927" height="294" alt="image" src="https://github.com/user-attachments/assets/e998dada-88a0-40fe-9096-ab4abd3aec8a" />

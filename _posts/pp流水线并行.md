@@ -24,6 +24,11 @@ https://mp.weixin.qq.com/s/vCy6ga5EA2dzvFoL8p6QjA
 <img width="669" height="302" alt="image" src="https://github.com/user-attachments/assets/430b91dd-f29b-41a4-b5c5-797553e96012" />
 减小了v倍空泡，但是通信增加了v倍。
 
+注意，这里有几个细节。
+- 这里的形状是梯形
+- G(microbatch_group_size_per_vp_stage)=pp，1f1b-I的调度是以这个为当前chunk调度的（f/b队列连续执行当前chunkG个micro-batch）
+- warmup数量为N_{warmup}(r) = min(MV, 2(PP-rank-1)+(V-1)G+E)。(V-1)*G就是简单的不考虑当前chunk，PP-rank-1的意思是有多少个rank要传递 乘2是backward是forward的两倍。
+
 ## zero-bubble-梯形
 <img width="1440" height="189" alt="image" src="https://github.com/user-attachments/assets/379d856d-348f-4bc1-a82a-1554f024704f" />
 把dx和dw拆开来了，合理的调度让空泡更小

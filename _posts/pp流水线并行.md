@@ -36,9 +36,34 @@ https://mp.weixin.qq.com/s/vCy6ga5EA2dzvFoL8p6QjA
 
 ## zero-bubble-v
 <img width="1440" height="235" alt="image" src="https://github.com/user-attachments/assets/471ea5b3-fa9a-4cf5-885a-0c93ef932e2f" />
-平行四边形显存减少到了梯形级别。
+
+**平行四边形显存减少到了梯形级别。**
+原理是:
+- 之前的layer获得层不平均，现在的layer相对平均。比如gpu0每次切分的layer前向第一个，反向最后一个。显存相对均匀
+- 通过拆分调度dx和dw可以提前释放显存
+
 
 **把1f1b-i换成了-v的调度。（如果-i会不会减少显存占用？）**
+会，但是不会减少这么多。
 
-device1不存储0和p,2p,3p,vp等这些layer，而是倒着存：0,layer-1... 
+假如有四个stage，pp=2，vpp=2。
+gpu0:S0,S3;gpu1:S1,S2
 
+Zero-Bubble的贡献主要是：
+- dx和dw的拆分，可以提前传输激活值，减少空泡
+- 梯形到平行四边形，减少空泡
+- zerobubble-v，v形传输 减少了显存占用
+
+## dual-pipeline
+<img width="1716" height="306" alt="image" src="https://github.com/user-attachments/assets/d23579b9-a680-42cf-8c83-097ff658e14a" />
+<img width="1720" height="228" alt="image" src="https://github.com/user-attachments/assets/ce57aaff-666c-4372-89ad-94c4ea213984" />
+
+在zero-bubble-v的基础上，把layer数量翻倍了并且规定了方向。
+<img width="1446" height="834" alt="image" src="https://github.com/user-attachments/assets/63835cd5-62c3-4055-9bb3-a4b7f51fb7d6" />
+
+然后讲一个batch切成两个mini-batch。根据上述图，进行two-batch-overlap的操作。
+<img width="1532" height="1066" alt="image" src="https://github.com/user-attachments/assets/aefa6ff7-b9be-496e-90e9-40a27078154d" />
+
+## 朱然
+在1f1b-i的基础上，稳态阶段直接进行two-batch-overlap，改动非常小。
+<img width="1080" height="238" alt="image" src="https://github.com/user-attachments/assets/10d236a8-254c-4ff9-bb14-1850fa24ea5b" />

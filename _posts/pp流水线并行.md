@@ -18,20 +18,24 @@ https://mp.weixin.qq.com/s/vCy6ga5EA2dzvFoL8p6QjA
 
 ## 1F1B
 <img width="1440" height="815" alt="image" src="https://github.com/user-attachments/assets/f31c0535-936e-4d2d-8708-8cfbcdf2d032" />
+
 相比于GPipe没有减小空泡，但是减小的激活值。
 
 ## 1f1b-i（virtual pipeline）
 <img width="669" height="302" alt="image" src="https://github.com/user-attachments/assets/430b91dd-f29b-41a4-b5c5-797553e96012" />
+
 减小了v倍空泡，但是通信增加了v倍。
 
 注意，这里有几个细节。
 - 这里的形状是梯形
 - G(microbatch_group_size_per_vp_stage)=pp，1f1b-I的调度是以这个为当前chunk调度的（f/b队列连续执行当前chunkG个micro-batch）
 - warmup数量为N_{warmup}(r) = min(MV, 2(PP-rank-1)+(V-1)G+E)。(V-1)*G就是简单的不考虑当前chunk，PP-rank-1的意思是有多少个rank要传递 乘2是backward是forward的两倍。
+- 每一个rank的调度当前执行1f1b顺序都是：b=k，f=k+warmup_nums这样的偏移量
 
 ## zero-bubble-梯形
 <img width="1440" height="189" alt="image" src="https://github.com/user-attachments/assets/379d856d-348f-4bc1-a82a-1554f024704f" />
-把dx和dw拆开来了，合理的调度让空泡更小
+
+把dx和dw拆开来了，合理的调度让空泡更小。这里的稳态顺序是：f-dx-dw。dx可以偷偷传输。
 
 **这里是怎么调度dx和dw和f的？**
 
